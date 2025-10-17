@@ -422,7 +422,11 @@ def load_build_config(
         os.remove(build_config_path)
         return None
 
-    dtk_version = str(config.dtk_tag)[1:]  # Strip v
+    # PS2 hack
+    if config.dtk_tag:
+        dtk_version = str(config.dtk_tag)[1:]  # Strip v
+    else:
+        dtk_version = "1.6.2"
     if versiontuple(config_version) < versiontuple(dtk_version):
         print("Outdated config.json, regenerating...")
         f.close()
@@ -731,17 +735,10 @@ def generate_build_ninja(
         wrapper_implicit,
     ]
 
-    # NGCLD
-    ngcld = compiler_path / "ngcld.exe"
-    ngcld_cmd = f"{wrapper_cmd}{ngcld} $ldflags -o $out @$out.rsp"
-    ngcld_implicit: List[Optional[Path]] = [
-        compilers_implicit or ngcld,
-        wrapper_implicit,
-    ]
-
     # EE-GCC
     ee_gcc = compiler_path / "ee-gcc.exe"
-    ee_gcc_cmd = f'{ee_gcc} $cflags -MMD -c -o $out $in"'
+    strip = binutils / "strip"
+    ee_gcc_cmd = f'{ee_gcc} $cflags -MMD -c -o $out $in" && {strip}{EXE} $out -N dummy-symbol-name'
     ee_gcc_implicit: List[Optional[Path]] = [
         compilers_implicit or ee_gcc,
         wrapper_implicit,
@@ -752,7 +749,17 @@ def generate_build_ninja(
     # GNU as
     gnu_as_cmd = None
     gnu_as_implicit = None
+    ld_cmd = None
+    ld_implicit = None
     if config.platform != Platform.PS2:
+        # NGCLD
+        ngcld = compiler_path / "ngcld.exe"
+        ld_cmd = f"{wrapper_cmd}{ngcld} $ldflags -o $out @$out.rsp"
+        ld_implicit: List[Optional[Path]] = [
+            compilers_implicit or ngcld,
+            wrapper_implicit,
+        ]
+
         gnu_as = binutils / f"powerpc-eabi-as{EXE}"
         gnu_as_cmd = (
             f"{CHAIN}{gnu_as} $asflags -o $out $in -MD $out.d"
@@ -763,7 +770,15 @@ def generate_build_ninja(
         # include macros.inc directly as an implicit dependency
         gnu_as_implicit.append(build_path / "include" / "macros.inc")
     else:
-        gnu_as = binutils / f"mips-as{EXE}"
+        # GNU linker
+        gnu_ld = binutils / f"mips-linux-gnu-ld{EXE}"
+        ld_cmd = f"{wrapper_cmd}{gnu_ld} $ldflags -o $out @$out.rsp"
+        ld_implicit: List[Optional[Path]] = [
+            compilers_implicit or gnu_ld,
+            wrapper_implicit,
+        ]
+
+        gnu_as = binutils / f"mips-linux-gnu-as{EXE}"
         gnu_as_cmd = f"{CHAIN}{gnu_as} $asflags -no-pad-sections -EL -march=5900 -mabi=eabi -o $out $in -MD $out.d"
         gnu_as_implicit = [binutils_implicit or gnu_as]
         # As a workaround for https://github.com/encounter/dtk-template/issues/51
@@ -784,7 +799,7 @@ def generate_build_ninja(
     n.comment("Link ELF file")
     n.rule(
         name="link",
-        command=ngcld_cmd,
+        command=ld_cmd,
         description="LINK $out",
         rspfile="$out.rsp",
         rspfile_content="$in_newline",
@@ -970,7 +985,7 @@ def generate_build_ninja(
                     inputs=self.inputs,
                     implicit=[
                         self.ldscript,
-                        *ngcld_implicit,
+                        *ld_implicit,
                     ],
                     implicit_outputs=elf_map,
                     variables={"ldflags": elf_ldflags},
@@ -998,7 +1013,7 @@ def generate_build_ninja(
                     outputs=preplf_path,
                     rule="link",
                     inputs=self.inputs,
-                    implicit=ngcld_implicit,
+                    implicit=ld_implicit,
                     implicit_outputs=preplf_map,
                     variables={"ldflags": preplf_ldflags},
                     order_only="post-compile",
@@ -1007,7 +1022,7 @@ def generate_build_ninja(
                     outputs=plf_path,
                     rule="link",
                     inputs=self.inputs,
-                    implicit=[self.ldscript, preplf_path, *ngcld_implicit],
+                    implicit=[self.ldscript, preplf_path, *ld_implicit],
                     implicit_outputs=plf_map,
                     variables={"ldflags": plf_ldflags},
                     order_only="post-compile",
@@ -1086,7 +1101,6 @@ def generate_build_ninja(
             cflags_str = make_flags_str(all_cflags)
             used_compiler_versions.add(obj.options["toolchain_version"])
 
-            # TODO PS2
             if config.platform == Platform.GC_WII:
                 # Add ProDG build rule
                 build_rule = "prodg"
@@ -1295,7 +1309,7 @@ def generate_build_ninja(
         ###
         # Generate RELs
         ###
-        if config.platform != Platform.X360:
+        if config.platform == Platform.GC_WII:
             n.comment("Generate REL(s)")
             flags = "-w"
             if len(build_config["links"]) > 1:
@@ -1375,7 +1389,8 @@ def generate_build_ninja(
         ###
         # Check hash
         ###
-        if config.platform != Platform.X360:
+        # TODO PS2
+        if config.platform == Platform.GC_WII:
             n.comment("Check hash")
             ok_path = build_path / "ok"
             quiet = "-q " if len(link_steps) > 3 else ""
@@ -1407,7 +1422,8 @@ def generate_build_ninja(
             python_lib,
             report_path,
         ]
-        if config.platform != Platform.X360:
+        # TODO PS2
+        if config.platform == Platform.GC_WII:
             progress_implicit.append(ok_path)
 
         n.build(
@@ -1560,7 +1576,7 @@ def generate_build_ninja(
         n.comment("Split ELF into relocatable objects")
         n.rule(
             name="split",
-            command="python -m splat split $in",
+            command="python tools/splat_to_config_json.py $in $out_dir",
             description="SPLIT $in",
             depfile="$out_dir/dep",
             deps="gcc",
@@ -1578,7 +1594,7 @@ def generate_build_ninja(
         n.comment(f"Split {what_to_split.upper()} into relocatable objects")
         n.rule(
             name="split",
-            command=f"{dtk} {what_to_split} split $in",
+            command=f"{dtk} {what_to_split} split $in $out_dir",
             description="SPLIT $in",
             depfile="$out_dir/dep",  # TODO?
             deps="gcc",
@@ -2054,7 +2070,6 @@ def generate_compile_commands(
         cflags.extend(config.extra_clang_flags)
         cflags.extend(obj.options["extra_clang_flags"])
 
-        # TODO PS2
         if config.platform == Platform.GC_WII:
             unit_config_args = [
                 "clang",
