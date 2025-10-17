@@ -21,6 +21,7 @@ from tools.project import (
     Object,
     ProgressCategory,
     ProjectConfig,
+    Platform,
     calculate_progress,
     generate_build,
     is_windows,
@@ -33,10 +34,6 @@ VERSIONS = [
     "EUROPEGERMILESTONE",  # 1
     "SLES-53558-A124",  # 2
 ]
-
-GC_VERSIONS = [VERSIONS[0]]
-X360_VERSIONS = [VERSIONS[1]]
-PS2_VERSIONS = [VERSIONS[2]]
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -148,14 +145,19 @@ if not config.non_matching:
     config.asm_dir = None
 
 # Tool versions
-config.binutils_tag = "2.42-1"
 config.compilers_tag = "20251015"
 
-if config.version in GC_VERSIONS:
+if version_num in [0]:
+    config.platform = Platform.GC_WII
     config.dtk_tag = "v1.6.2"
-else:
+    config.binutils_tag = "2.42-1"
+elif version_num in [1]:
+    config.platform = Platform.X360
     config.dtk_tag = "v0.1.1"
-    config.use_jeff = True
+    config.binutils_tag = "2.42-1"
+elif version_num in [2]:
+    config.platform = Platform.PS2
+    config.binutils_tag = "2.45"
 
 config.objdiff_tag = "v3.3.0"
 config.sjiswrap_tag = "v1.2.0"
@@ -165,7 +167,7 @@ config.wibo_tag = "1.0.0-alpha.4"
 config.config_path = Path("config") / config.version / "config.yml"
 config.check_sha_path = Path("config") / config.version / "build.sha1"
 
-if config.version in GC_VERSIONS:
+if config.platform == Platform.GC_WII:
     config.asflags = [
         "-mgekko",
         "--strip-local-absolute",
@@ -180,13 +182,22 @@ if config.version in GC_VERSIONS:
     # Optional numeric ID for decomp.me preset
     # Can be overridden in libraries or objects
     config.scratch_preset_id = 176
+elif config.platform == Platform.X360:
+    config.ldflags = []
+elif config.platform == Platform.PS2:
+    ldscript_path = Path("build") / config.version / "ldscript.ld"
+    config.ldflags = [
+        "-EL",
+        "-T",
+        str(ldscript_path),
+    ]  # TODO what about undefined_syms_auto.txt?
 
 # Use for any additional files that should cause a re-configure when modified
 config.reconfig_deps = []
 
 # Base flags, common to most GC/Wii games.
 # Generally leave untouched, with overrides added below.
-if config.version in GC_VERSIONS:
+if config.platform == Platform.GC_WII:
     config.linker_version = "ProDG/3.9.3"
 
     cflags_base = [
@@ -249,7 +260,7 @@ if config.version in GC_VERSIONS:
         "-DSN_TARGET_NGC",
         "-D__SN__",
     ]
-elif config.version in X360_VERSIONS:
+elif config.platform == Platform.X360:
     config.linker_version = "X360/14.00.2110"
 
     cflags_base = [
@@ -283,7 +294,7 @@ elif config.version in X360_VERSIONS:
         "-D_WCHAR_T_DEFINED",
         "-fms-extensions",
     ]
-elif config.version in PS2_VERSIONS:
+elif config.platform == Platform.PS2:
     config.linker_version = "PS2/ee-gcc2.95.3-136"
 
     cflags_base = [
@@ -374,7 +385,8 @@ def MatchingFor(*versions):
     return config.version in versions
 
 
-config.warn_missing_config = True
+if config.platform != Platform.PS2:
+    config.warn_missing_config = True
 config.warn_missing_source = False
 config.libs = [
     {
@@ -622,7 +634,7 @@ config.libs = [
     },
 ]
 
-if config.version in GC_VERSIONS:
+if config.platform == Platform.GC_WII:
     config.libs.extend(
         [
             {

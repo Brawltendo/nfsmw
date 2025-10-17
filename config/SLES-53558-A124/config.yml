@@ -1,0 +1,99 @@
+# Splat config for SLES-53558-A124 (PS2)
+name: Need for Speed Most Wanted A124 PS2 Prototype
+sha1: d01ad0bca1f88e1261cfaba35fccdbb8fba38d80
+
+options:
+  basename: NSF.ELF
+  target_path: orig/SLES-53558-A124/NFS.ELF
+  elf_path: build/SLES-53558-A124/NFS.ELF
+  base_path: ../..
+  platform: ps2
+  compiler: EEGCC
+
+  # Output paths
+  asm_path: build/SLES-53558-A124/asm
+  src_path: src
+  build_path: build/SLES-53558-A124/obj
+
+  # Assembly options
+  generate_asm_macros_files: True
+  named_regs_for_c_funcs: False
+  find_file_boundaries: False
+  disasm_unknown: True
+
+  # Rodata options
+  rodata_string_guesser_level: 0 # improve string detection
+  suggestion_rodata_section_start: True
+  pair_rodata_to_text: False
+  migrate_rodata_to_functions: True
+
+  # Auto-generate undefined functions and symbols
+  create_undefined_funcs_auto: True
+  undefined_funcs_auto_path: config/SLES-53558-A124//undefined_funcs_auto.txt
+  create_undefined_syms_auto: True
+  undefined_syms_auto_path: config/SLES-53558-A124//undefined_syms_auto.txt
+
+  # Manually defined symvols
+  symbol_addrs_path: config/SLES-53558-A124/symbols.txt
+  nonmatchings_path: build/SLES-53558-A124/nonmatchings
+  ld_script_path: build/SLES-53558-A124/ldscript.ld
+
+  # ELF sections
+  section_order: [".text", ".vutext", ".noover", ".rodata", ".gcc_except_table", ".over", ".data", ".lit4", ".sdata", ".sbss", ".bss"]
+  auto_link_sections: [".rodata", ".data", ".lit4", ".sdata", ".sbss", ".bss"]
+
+  # Linker script options
+  subalign: 8
+
+  # TODO gp_value
+
+segments:
+  # - [0, databin, elf_header]
+
+  - name: main
+    type: code
+    start: 0x001000
+    vram: 0x100000
+    bss_size: 0x374dc
+    subsegments:
+    - [0x1000, asm, Speed/Indep/SourceLists/zAI]
+    - [0x45728, asm, Speed/Indep/SourceLists/zAnim]
+    - [0x50A78, asm, Speed/Indep/SourceLists/zAttribSys]
+    - [0x5BE08, asm, Speed/Indep/SourceLists/zBWare]
+    - [0x65F70, asm, Speed/Indep/SourceLists/zCamera]
+    - [0x83EC4, asm, Speed/Indep/SourceLists/zComms]
+    - [0x83EC8, asm, Speed/Indep/SourceLists/zDebug]
+    - [0x878B0, asm, Speed/Indep/SourceLists/zDynamics]
+    - [0x8E320, asm, Speed/Indep/SourceLists/zEagl4Anim]
+    - [0xA7B60, asm, Speed/Indep/SourceLists/zEAXSound]
+    - [0xCC4F8, asm, Speed/Indep/SourceLists/zEAXSound2]
+    - [0xF4F00, asm, Speed/Indep/SourceLists/zEcstasy]
+    - [0x12A778, asm, Speed/Indep/SourceLists/zFe]
+    - [0x185098, asm, Speed/Indep/SourceLists/zFe2]
+    - [0x1C50C8, asm, Speed/Indep/SourceLists/zFEng]
+    - [0x1D8910, asm, Speed/Indep/SourceLists/zFoundation]
+    - [0x1E0538, asm, Speed/Indep/SourceLists/zGameModes]
+    - [0x1E0990, asm, Speed/Indep/SourceLists/zGameplay]
+    - [0x204800, asm, Speed/Indep/SourceLists/zLua]
+    - [0x21C228, asm, Speed/Indep/SourceLists/zMain]
+    - [0x246EB8, asm, Speed/Indep/SourceLists/zMisc]
+    - [0x2641F8, asm, Speed/Indep/SourceLists/zMiscSmall]
+    - [0x2644A8, asm, Speed/Indep/SourceLists/zMission]
+    - [0x2644D8, asm, Speed/Indep/SourceLists/zPhysics]
+    - [0x2877C8, asm, Speed/Indep/SourceLists/zPhysicsBehaviors]
+    - [0x2BFEB8, asm, Speed/Indep/SourceLists/zPlatform]
+    - [0x2CC6E8, asm, Speed/Indep/SourceLists/zRender]
+    - [0x2CC7B0, asm, Speed/Indep/SourceLists/zSim]
+    - [0x2E5D00, asm, Speed/Indep/SourceLists/zSpeech]
+    - [0x310930, asm, Speed/Indep/SourceLists/zTrack]
+    - [0x3234D0, asm, Speed/Indep/SourceLists/zWorld]
+    - [0x357EE8, asm, Speed/Indep/SourceLists/zWorld2]
+    - [0x4397B0, asm, Speed/Indep/SourceLists/zOnline]
+    - [0x4B50C0, asm, Speed/Indep/SourceLists/zFeOverlay]
+
+    # - [0x113e00, data]
+
+    # - [0x192d00, rodata]
+
+  # - [0x1A1C70, databin]
+  - [0x68c4db]
