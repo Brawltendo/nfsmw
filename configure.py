@@ -31,10 +31,12 @@ DEFAULT_VERSION = 0
 VERSIONS = [
     "GOWE69",  # 0
     "EUROPEGERMILESTONE",  # 1
+    "SLES-53558-A124",  # 2
 ]
 
 GC_VERSIONS = [VERSIONS[0]]
 X360_VERSIONS = [VERSIONS[1]]
+PS2_VERSIONS = [VERSIONS[2]]
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -280,6 +282,58 @@ elif config.version in X360_VERSIONS:
         "-D_WIN32",
         "-D_WCHAR_T_DEFINED",
         "-fms-extensions",
+    ]
+elif config.version in PS2_VERSIONS:
+    config.linker_version = "PS2/ee-gcc2.95.3-136"
+
+    cflags_base = [
+        "-O1",
+        "-gdwarf",
+        # "-Wall",
+        "-I src/Speed/Indep/Libs/Support/stlgc",
+        "-I src/Speed/GameCube/Libs/stl/STLport-4.5/stlport",
+        "-I src/Speed/GameCube/bWare/GameCube/bWare/GameCube/SN/include",
+        "-I include",
+        "-I src/Speed/GameCube/bWare/GameCube/dolphinsdk/include",
+        "-I ./",
+        "-I src",
+        "-DTARGET_GC",
+        "-DGEKKO",
+        "-D_USE_MATH_DEFINES",
+        f"-I build/{config.version}/include",
+        f"-DBUILD_VERSION={version_num}",
+        f"-DVERSION_{config.version}",
+    ]
+
+    # Debug flags
+    if args.debug:
+        cflags_base.append("-DDEBUG=1")
+    else:
+        cflags_base.append("-DNDEBUG=1")
+
+    cflags_game = [
+        *cflags_base,
+        "-mps-nodf",
+        "-G0",
+        "-ffast-math",
+        "-fforce-addr",
+        "-fcse-follow-jumps",
+        "-fcse-skip-blocks",
+        "-fforce-mem",
+        "-fgcse",
+        "-frerun-cse-after-loop",
+        "-fschedule-insns",
+        "-fschedule-insns2",
+        "-fexpensive-optimizations",
+        "-frerun-loop-opt",
+        "-fmove-all-movables",
+        "-DLUA_NUMBER=float",
+    ]
+
+    config.extra_clang_flags = [
+        "-std=gnu++98",
+        "-DSN_TARGET_NGC",
+        "-D__SN__",
     ]
 
 cflags_cmn = [
