@@ -301,19 +301,13 @@ elif config.platform == Platform.PS2:
         "-O1",
         "-gdwarf",
         # "-Wall",
-        "-I src/Speed/Indep/Libs/Support/stlgc",
-        "-I src/Speed/GameCube/Libs/stl/STLport-4.5/stlport",
-        "-I src/Speed/GameCube/bWare/GameCube/bWare/GameCube/SN/include",
         "-I include",
-        "-I src/Speed/GameCube/bWare/GameCube/dolphinsdk/include",
-        "-I ./",
         "-I src",
-        "-DTARGET_GC",
-        "-DGEKKO",
+        "-DTARGET_PS2",
         "-D_USE_MATH_DEFINES",
         f"-I build/{config.version}/include",
         f"-DBUILD_VERSION={version_num}",
-        f"-DVERSION_{config.version}",
+        # f"-DVERSION_{config.version}", # TODO it's broken because of the dash?
     ]
 
     # Debug flags

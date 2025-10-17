@@ -736,9 +736,11 @@ def generate_build_ninja(
     ]
 
     # EE-GCC
-    ee_gcc = compiler_path / "ee-gcc.exe"
+    ee_gcc = compiler_path / "bin" / "ee-gcc.exe"
     strip = binutils / "strip"
-    ee_gcc_cmd = f'{ee_gcc} $cflags -MMD -c -o $out $in" && {strip}{EXE} $out -N dummy-symbol-name'
+    ee_gcc_cmd = (
+        f"{ee_gcc} $cflags -MMD -o $out $in && {strip}{EXE} $out -N dummy-symbol-name"
+    )
     ee_gcc_implicit: List[Optional[Path]] = [
         compilers_implicit or ee_gcc,
         wrapper_implicit,

@@ -46,7 +46,7 @@ def mips_binutils_url(tag):
     elif arch == "amd64":
         arch = "x86_64"
 
-    repo = "https://github.com/dbalatoni/mips-binutils"
+    repo = "https://github.com/dbalatoni13/mips-binutils"
     return f"{repo}/releases/download/{tag}/{system}-{arch}.zip"
 
 
