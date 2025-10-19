@@ -40,7 +40,7 @@ jobs:
     - name: Build
       run: |
         # Select binutils path based on version index
-        if [[ "${{ matrix.version }}" == "${{ matrix.versions[2] }}" ]]; then
+        if [[ "${{ matrix.version }}" == 'SLES-53558-A124' ]]; then
           BINUTILS="/mips_binutils"
         else
           BINUTILS="/ppc_binutils"
