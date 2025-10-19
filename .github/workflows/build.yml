@@ -30,7 +30,7 @@ jobs:
 
     # Copy the original files to the workspace
     - name: Prepare
-      run: cp -R /orig .
+      run: cp -R /orig . && pip install -r requirements.txt
 
     # Build the project
     - name: Build
