@@ -30,10 +30,7 @@ jobs:
 
     - name: Install dependencies
       if: ${{ matrix.version == 'SLES-53558-A124' }}
-      run: |
-        python -m venv venv
-        . venv/bin/activate
-        pip install -U -r requirements.txt
+      run: pip install --break-system-packages -r requirements.txt
 
     # Copy the original files to the workspace
     - name: Prepare
