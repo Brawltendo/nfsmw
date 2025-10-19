@@ -87,8 +87,16 @@ segments:
     - [0x310930, asmtu, Speed/Indep/SourceLists/zTrack]
     # - [0x3234D0, asmtu, Speed/Indep/SourceLists/zWorld]
     - [0x357EE8, asmtu, Speed/Indep/SourceLists/zWorld2]
-    - [0x4397B0, asmtu, Speed/Indep/SourceLists/zOnline]
-    - [0x4B50C0, asmtu, Speed/Indep/SourceLists/zFeOverlay]
+
+    - [0x435C90, pad, rest]
+
+    # - [0x435D60, pad, idk]
+
+    # - [0x4397B0, asmtu, Speed/Indep/SourceLists/zOnline]
+    # - [0x4B50C0, asmtu, Speed/Indep/SourceLists/zFeOverlay]
+
+    # TODO
+    # - [0x4D7D50, pad, rest]
 
     # - [0x113e00, data]
 
