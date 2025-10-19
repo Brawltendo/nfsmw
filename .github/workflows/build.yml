@@ -31,7 +31,7 @@ jobs:
     # Copy the original files to the workspace
     - name: Prepare
       run: |
-          cp -R /orig
+          cp -R /orig .
           python -m pip install --upgrade pip
           pip install -U -r requirements.txt
 
