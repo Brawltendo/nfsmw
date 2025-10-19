@@ -667,9 +667,7 @@ def generate_build_ninja(
                 "tag": config.binutils_tag,
             }
     else:
-        sys.exit(
-            "ProjectConfig.ppc_binutils_tag or ProjectConfig.mips_binutils_tag missing"
-        )
+        sys.exit("ProjectConfig.binutils_tag missing")
 
     if binutils_download_vars:
         binutils_implicit = binutils
@@ -737,12 +735,15 @@ def generate_build_ninja(
 
     # EE-GCC
     ee_gcc = compiler_path / "bin" / "ee-gcc.exe"
-    strip = binutils / "strip"
-    ee_gcc_cmd = (
-        f"{ee_gcc} $cflags -MMD -o $out $in && {strip}{EXE} $out -N dummy-symbol-name"
-    )
+    strip = binutils / "mips-linux-gnu-strip"
+    # TODO strip
+    # ee_gcc_cmd = (
+    #     f"{ee_gcc} $cflags -MMD -c -o $out $in && {strip}{EXE} $out -N dummy-symbol-name"
+    # )
+    ee_gcc_cmd = f"{ee_gcc} $cflags -MMD -c -o $out $in"
     ee_gcc_implicit: List[Optional[Path]] = [
         compilers_implicit or ee_gcc,
+        binutils,
         wrapper_implicit,
     ]
 
@@ -781,11 +782,12 @@ def generate_build_ninja(
         ]
 
         gnu_as = binutils / f"mips-linux-gnu-as{EXE}"
-        gnu_as_cmd = f"{CHAIN}{gnu_as} $asflags -no-pad-sections -EL -march=5900 -mabi=eabi -o $out $in -MD $out.d"
+        gnu_as_cmd = f"{CHAIN}{gnu_as} $asflags -o $out $in -MD $out.d"
         gnu_as_implicit = [binutils_implicit or gnu_as]
         # As a workaround for https://github.com/encounter/dtk-template/issues/51
         # include macros.inc directly as an implicit dependency
-        gnu_as_implicit.append(build_path / "include" / "macros.inc")
+        gnu_as_implicit.append(Path("include") / "macro.inc")
+        gnu_as_implicit.append(Path("include") / "labels.inc")
 
     if os.name != "nt":
         transform_dep = config.tools_dir / "transform_dep.py"
@@ -1206,12 +1208,25 @@ def generate_build_ninja(
                     print(f"Missing configuration for {obj_name}")
                 if obj_path is not None:
                     link_step.add(Path(obj_path))
-                return
+                # TODO hack
+                if config.platform == Platform.PS2 and obj_name.endswith(".s"):
+                    obj_name = obj_name.removesuffix(".s") + ".cpp"
+                    obj = objects.get(obj_name)
+                else:
+                    return
 
             link_built_obj = obj.completed
             built_obj_path: Optional[Path] = None
             if obj.src_path is not None and obj.src_path.exists():
                 check_path_case(obj.src_path)
+                if config.platform == Platform.PS2:
+                    # Assemble target obj file for objdiff
+                    # TODO this is really hacky
+                    asm_path = Path(
+                        str(obj.src_obj_path.with_suffix(".s")).replace("src", "asm")
+                    )
+                    obj_path = Path(str(obj.src_obj_path).replace("src", "obj"))
+                    built_obj_path = asm_build(obj, asm_path, obj_path)
                 if file_is_c_cpp(obj.src_path):
                     # Add C/C++ build rule
                     built_obj_path = c_build(obj, obj.src_path)

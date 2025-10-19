@@ -185,6 +185,13 @@ if config.platform == Platform.GC_WII:
 elif config.platform == Platform.X360:
     config.ldflags = []
 elif config.platform == Platform.PS2:
+    config.asflags = [
+        "-no-pad-sections",
+        "-EL",
+        "-march=5900",
+        "-mabi=eabi",
+        "-I include",
+    ]
     ldscript_path = Path("build") / config.version / "ldscript.ld"
     config.ldflags = [
         "-EL",
@@ -299,7 +306,7 @@ elif config.platform == Platform.PS2:
 
     cflags_base = [
         "-O1",
-        "-gdwarf",
+        "-ggdb",
         # "-Wall",
         "-I include",
         "-I src",
@@ -318,7 +325,6 @@ elif config.platform == Platform.PS2:
 
     cflags_game = [
         *cflags_base,
-        "-mps-nodf",
         "-G0",
         "-ffast-math",
         "-fforce-addr",

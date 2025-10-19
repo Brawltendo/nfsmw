@@ -15,7 +15,11 @@ import splat.scripts.split as split
 
 
 def generate_config_json(config_yml: Path, build_folder: Path) -> str:
-    split.main([config_yml], modes="all", verbose=True)
+    split.main(
+        [config_yml],
+        modes="all",
+        verbose=True,
+    )
 
     linker_entries = split.linker_writer.entries
 
@@ -41,9 +45,8 @@ def generate_config_json(config_yml: Path, build_folder: Path) -> str:
             continue
 
         src_path = entry.src_paths[0]
-        # remove src/
-        src_path = Path(*src_path.parts[1:])
-        print(src_path)
+        # this removes .../asm/
+        src_path = Path(*src_path.parts[3:])
         # src_path = Path(*src_path.parts[src_path.parts.index("asm") + 1 :])
 
         config_json["units"].append(
