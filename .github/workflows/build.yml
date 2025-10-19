@@ -30,13 +30,22 @@ jobs:
 
     # Copy the original files to the workspace
     - name: Prepare
-      run: cp -R /orig . && pip install -r requirements.txt
+      run: cp -R /orig
+          python -m pip install --upgrade pip
+          pip install -U -r requirements.txt
 
     # Build the project
     - name: Build
       run: |
+        # Select binutils path based on version index
+        if [[ "${{ matrix.version }}" == "${{ matrix.versions[2] }}" ]]; then
+          BINUTILS="/mips_binutils"
+        else
+          BINUTILS="/ppc_binutils"
+        fi
+
         python configure.py --map --version ${{ matrix.version }} \
-            --binutils /binutils --compilers /compilers
+            --binutils "$BINUTILS" --compilers /compilers
         ninja all_source progress build/${{ matrix.version }}/report.json
 
     # Upload map files
