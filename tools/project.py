@@ -1826,7 +1826,7 @@ def generate_objdiff_config(
         else:
             cflags_str = make_flags_str(all_cflags)
             unit_config["scratch"] = {
-                "platform": "gc_wii",
+                "platform": "ps2" if config.platform == Platform.PS2 else "gc_wii",
                 "compiler": compiler_version,
                 "c_flags": cflags_str,
                 "preset_id": obj.options["scratch_preset_id"],
