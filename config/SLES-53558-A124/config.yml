@@ -73,7 +73,7 @@ segments:
     # - [0x1D8910, asmtu, Speed/Indep/SourceLists/zFoundation.cpp]
     - [0x1E0538, asmtu, Speed/Indep/SourceLists/zGameModes.cpp]
     - [0x1E0990, asmtu, Speed/Indep/SourceLists/zGameplay.cpp]
-    # - [0x204800, asmtu, Speed/Indep/SourceLists/zLua.cpp]
+    - [0x204800, asmtu, Speed/Indep/SourceLists/zLua.cpp]
     - [0x21C228, asmtu, Speed/Indep/SourceLists/zMain.cpp]
     # - [0x246EB8, asmtu, Speed/Indep/SourceLists/zMisc.cpp]
     - [0x2641F8, asmtu, Speed/Indep/SourceLists/zMiscSmall.cpp]

@@ -1756,6 +1756,7 @@ def generate_objdiff_config(
         "ProDG/3.7": "prodg_37",
         "ProDG/3.8.1": "prodg_381",
         "ProDG/3.9.3": "prodg_393",
+        "PS2/ee-gcc2.9-991111": "ee-gcc2.9-991111",
     }
 
     def add_unit(

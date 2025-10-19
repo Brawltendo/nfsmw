@@ -302,10 +302,10 @@ elif config.platform == Platform.X360:
         "-fms-extensions",
     ]
 elif config.platform == Platform.PS2:
-    config.linker_version = "PS2/ee-gcc2.95.3-136"
+    config.linker_version = "PS2/ee-gcc2.9-991111"
 
     cflags_base = [
-        "-O1",
+        "-O2",
         "-ggdb",
         # "-Wall",
         "-I include",
@@ -327,7 +327,7 @@ elif config.platform == Platform.PS2:
         *cflags_base,
         "-G0",
         "-ffast-math",
-        "-fforce-addr",
+        # "-fforce-addr",
         "-fcse-follow-jumps",
         "-fcse-skip-blocks",
         "-fforce-mem",
@@ -343,7 +343,7 @@ elif config.platform == Platform.PS2:
 
     config.extra_clang_flags = [
         "-std=gnu++98",
-        "-DSN_TARGET_NGC",
+        "-DSN_TARGET_PS2",
         "-D__SN__",
     ]
 
