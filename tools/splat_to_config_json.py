@@ -50,8 +50,8 @@ def generate_config_json(config_yml: Path, build_folder: Path) -> str:
         # src_path = Path(*src_path.parts[src_path.parts.index("asm") + 1 :])
 
         obj_path = (build_folder / "obj" / name).as_posix().removesuffix(
-            ".cpp.s"
-        ).removesuffix(".c.s") + ".o"
+            ".s"
+        ).removesuffix(".cpp").removesuffix(".c") + ".o"
         src_path = name.removesuffix(".s")
         config_json["units"].append(
             {
