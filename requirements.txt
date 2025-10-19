@@ -3,5 +3,3 @@ spimdisasm>=1.36.1,<2.0.0
 rabbitizer==1.13.0
 tqdm
 pygfxd
-ninja
-ninja_syntax
